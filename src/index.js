@@ -1,4 +1,4 @@
-// import "babel-polyfill";
+import "babel-polyfill";
 
 import Phaser from "phaser";
 import NyanCatGame from "./NyanCatGame";
