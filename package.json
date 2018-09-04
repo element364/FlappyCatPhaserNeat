@@ -8,6 +8,7 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "neataptic": "1.4.7",
     "phaser": "3.11.0"
   },
