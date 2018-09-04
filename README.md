@@ -1,2 +1,0 @@
-# FlappyCatPhaserNeat
-Created with CodeSandbox
