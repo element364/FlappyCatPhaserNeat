@@ -80,11 +80,11 @@ game.events.on("gameready", () => {
 });
 
 game.events.on("gameover", bestScore => {
-  renderPopulation(nn.getPopulation());
+  // renderPopulation(nn.getPopulation());
 
-  const { generation, averageScore } = nn.endEvaluation();
+  // const { generation, averageScore } = nn.endEvaluation();
   
-  const brains = nn.getPopulation();
+  // const brains = nn.getPopulation();
   
   mainScene.restart(brains, generation, averageScore);
 });
