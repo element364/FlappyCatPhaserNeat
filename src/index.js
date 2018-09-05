@@ -74,7 +74,7 @@ game.events.on("gameready", () => {
   nn = new NN();
   window.nn = nn;
   const brains = nn.getPopulation();
-  renderPopulation(nn.getPopulation());
+  // renderPopulation(nn.getPopulation());
 
   mainScene.restart(brains, 0, 0);
 });
@@ -84,7 +84,7 @@ game.events.on("gameover", bestScore => {
 
   // const { generation, averageScore } = nn.endEvaluation();
   
-  // const brains = nn.getPopulation();
+  const brains = nn.getPopulation();
   
   mainScene.restart(brains, generation, averageScore);
 });
