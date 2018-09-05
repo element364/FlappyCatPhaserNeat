@@ -11,11 +11,16 @@ class NN {
   } = {}) {
     this.neat = new Neat(inputSize, outputSize, null, {
       // mutation: methods.mutation.ALL,
-      mutation: methods.mutation.FFW,
+      // mutation: methods.mutation.FFW,
+      mutation: [
+        methods.mutation.MOD_WEIGHT,
+        methods.mutation.MOD_BIAS
+      ],
       popsize,
       mutationRate,
       elitism: Math.round(elitismPercent * popsize),
-      network: new architect.Random(inputSize, startHiddenSize, outputSize)
+      network: new architect.Perceptron(inputSize, inputSize, outputSize)
+      // network: new architect.Random(inputSize, startHiddenSize, outputSize)
     });
 
     for (let i = 0; i < 100; i++) {

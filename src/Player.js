@@ -4,7 +4,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, brain) {
     super(scene, x, y, texture);
 
-    this.alpha = 0.2;
+    this.alpha = 0.75;
     scene.physics.world.enable(this);
     scene.add.existing(this);
 

@@ -10,7 +10,9 @@ class NyanCatGame extends Phaser.Scene {
   }
 
   createColumnNayn() {
-    const missing = this.generator.integerInRange(1, 5);
+    // const missing = this.generator.integerInRange(1, 5);
+    const missing = this.prev ? 1 : 5
+    this.prev = !this.prev;
 
     for (let i = 0; i < 8; i++) {
       if (i !== missing && i !== missing + 1) {
@@ -50,11 +52,11 @@ class NyanCatGame extends Phaser.Scene {
     this.score = 0;
     this.scoreText.setText(`Score: 0`);
 
-    for (let brain of brains) {
-      this.players.add(new Player(this, 100, 200, "nyan", brain).setScale(0.5));
-    }
+    // for (let brain of brains) {
+    //   this.players.add(new Player(this, 100, 200, "nyan", brain).setScale(0.5));
+    // }
 
-    // this.players.add(new Player(this, 100, 200, 'nyan', { human: true }).setScale(0.5));
+    this.players.add(new Player(this, 100, 200, 'nyan', { human: true }).setScale(0.5));
 
     const ppp = this.players.getChildren();
 
@@ -76,6 +78,7 @@ class NyanCatGame extends Phaser.Scene {
   }
 
   create() {
+    this.prev = false;
     this.generator = new Phaser.Math.RandomDataGenerator();
 
     this.pipes = this.physics.add.group();
@@ -101,7 +104,7 @@ class NyanCatGame extends Phaser.Scene {
     this.camera.setBackgroundColor("#4ac3cd");
 
     this.timeEvent = this.time.addEvent({
-      delay: this.generator.integerInRange(800, 1250),
+      delay: 800,
       callback: this.createColumnNayn,
       callbackScope: this,
       loop: true,
@@ -133,7 +136,7 @@ class NyanCatGame extends Phaser.Scene {
       } else {
         const { y, gapD, gapY, gapH, vY } = player.getNearestColumnInfo();
 
-        // player.renderDebug(y, gapD, gapY, gapH, vY);
+        player.renderDebug(y, gapD, gapY, gapH, vY);
 
         if (player.brain.human) {
           if (
