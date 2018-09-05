@@ -23,8 +23,6 @@ class NyanCatGame extends Phaser.Scene {
         ball.body.onWorldBounds = true;
       }
     }
-
-    window.pipes = this.pipes;
   }
 
   flyAll() {
@@ -164,19 +162,24 @@ class NyanCatGame extends Phaser.Scene {
       `Score: ${this.averageScore}`
     ]);
 
-    if (aliveNumber === 0 && !this.timeEvent.paused) {
-      // if (this.score > this.bestScore) {
-      //   this.bestScore = this.score;
-      //   this.bestScoreText.setText(`Best score: ${Math.round(this.bestScore)}`);
-      // }
-
-      this.timeEvent.paused = true;
-      this.sys.game.events.emit("gameover", this.score);
-    }
-
     if (!this.timeEvent.paused) {
-      this.score += 1;
-      this.scoreText.setText(`Score: ${Math.round(this.score)}`);
+      if (aliveNumber === 0) {
+        if (this.score > this.bestScore) {
+          this.bestScore = this.score;
+          this.bestScoreText.setText(`Best score: ${Math.round(this.bestScore)}`);
+        }
+
+        const storedBestScore = Number(localStorage.getItem('bestScore'));
+        if (this.score > storedBestScore) {
+          localStorage.setItem('bestScore', this.score);
+        }
+  
+        this.timeEvent.paused = true;
+        this.sys.game.events.emit("gameover", this.score);
+      } else {
+        this.score += 1;
+        this.scoreText.setText(`Score: ${Math.round(this.score)}`);
+      }
     }
   }
 }

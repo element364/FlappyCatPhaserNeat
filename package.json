@@ -10,7 +10,9 @@
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "neataptic": "1.4.7",
-    "phaser": "3.11.0"
+    "phaser": "3.11.0",
+    "vue": "^2.5.17",
+    "webcola": "^3.3.8"
   },
   "devDependencies": {
     "parcel-bundler": "^1.6.1"

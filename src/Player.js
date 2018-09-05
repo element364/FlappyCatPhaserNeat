@@ -31,12 +31,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     ];
 
     let activation = this.brain.activate(input);
-    if (activation < 0) {
-      activation = 0;
-    }
-    if (activation > 1) {
-      activation = 1;
-    }
 
     return activation > 0.5;
   }
@@ -92,7 +86,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
       `y: ${y.toFixed(2)}`,
       `gD: ${gapD.toFixed(2)}`,
       `gY: ${gapY.toFixed(2)}`,
-      `gH: ${gapH.toFixed(2)}`
+      `gH: ${gapH.toFixed(2)}`,
+      `vY: ${vY.toFixed(2)}`
     ]);
 
     this.debugGraphics.clear();
