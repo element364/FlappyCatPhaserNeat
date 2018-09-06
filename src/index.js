@@ -32,6 +32,7 @@ if (module.hot) {
 }
 
 let mainScene, nn;
+let maxScore = 0;
 let populationsData = [];
 
 const chartData = {
@@ -48,7 +49,12 @@ const chartData = {
   ]
 };
 
-let chart;
+const chart = new frappe.Chart('#chart', {
+  title: 'generation score history',
+  type: 'line',
+  height: 300,
+  data: chartData
+});
 
 function redrawChart() {
   chartData.labels = populationsData.map(p => p.generation.toString());
@@ -81,6 +87,7 @@ const leaderboardVue = new Vue({
   `,
   methods: {
     resetBestScore() {
+      localStorage.removeItem('maxScore');
       localStorage.removeItem('populations');
       localStorage.removeItem('nn');
       location.reload();
@@ -92,20 +99,14 @@ const leaderboardVue = new Vue({
   }
 });
 
-window.leaderboardVue = leaderboardVue;
-
 game.events.on("gameready", () => {
-  chart = new frappe.Chart('#chart', {
-    title: 'generation score history',
-    type: 'line',
-    height: 200,
-    data: chartData
-  })
-
   mainScene = game.scene.scenes[0];  
 
   nn = new NN();
   window.nn = nn;
+
+  const maxS = Number(localStorage.getItem('maxScore'));
+  maxScore = Math.max(maxScore, maxS);
 
   const populationsJson = localStorage.getItem('populations');
   if (populationsJson) {
@@ -121,13 +122,10 @@ game.events.on("gameready", () => {
 
   const brains = nn.getPopulation();
   
-  leaderboardVue.players = brains.map(item => ({ score: item.score || 0 }));
-  mainScene.restart({ brains, generation: 0, averageScore: 0 });
+  mainScene.restart({ brains, generation: nn.neat.generation, maxScore });
 });
 
 game.events.on("gameover", bestScore => {
-  leaderboardVue.players = nn.getPopulation().map(item => ({ score: item.score || 0 }));
-
   const { generation, max, avg, min } = nn.describe();
 
   populationsData = [
@@ -135,10 +133,13 @@ game.events.on("gameover", bestScore => {
     { generation, max, avg, min }
   ];
 
+  maxScore = Math.max(maxScore, max);
+
   redrawChart();
 
-  if (generation > 0 && generation % 500 === 0) {
+  if (generation > 0 && generation % 10 === 0) {
     // Dump and reload
+    localStorage.setItem('maxScore', maxScore);
     localStorage.setItem('populations', JSON.stringify(populationsData));
     localStorage.setItem('nn', JSON.stringify(nn.toJSON()));
     location.reload();
@@ -148,7 +149,7 @@ game.events.on("gameover", bestScore => {
   nn.endEvaluation();
   const brains = nn.getPopulation();
   
-  mainScene.restart({ brains, generation: generation, averageScore: avg });
+  mainScene.restart({ brains, generation, maxScore });
 });
 
 window.game = game;

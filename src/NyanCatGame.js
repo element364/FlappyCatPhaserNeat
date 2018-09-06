@@ -35,11 +35,12 @@ class NyanCatGame extends Phaser.Scene {
     }
   }
 
-  restart({ brains, generation, averageScore, human = false } = {}) {
+  restart({ brains, generation, maxScore, human = false } = {}) {
     this.timeEvent.paused = true;
 
     this.generation = generation;
-    this.averageScore = averageScore;
+    this.maxScore = maxScore;
+    this.maxScoreText.setText(`Max Score: ${Math.round(this.maxScore)}`);
 
     for (
       let first = this.pipes.getFirstAlive();
@@ -94,11 +95,14 @@ class NyanCatGame extends Phaser.Scene {
       this
     );
 
+    this.score = 0;
     this.scoreText = this.add.text(0, 0, `Score: 0`, {
       fontSize: "16px",
       fill: "#fff"
     });
-    this.bestScoreText = this.add.text(0, 16, `Best score: 0`, {
+    
+    this.maxScore = 0;
+    this.maxScoreText = this.add.text(0, 16, `Max score: 0`, {
       fontSize: "16px",
       fill: "#fff"
     });
@@ -113,9 +117,6 @@ class NyanCatGame extends Phaser.Scene {
       loop: true,
       paused: true
     });
-
-    this.score = 0;
-    this.bestScore = 0;
 
     this.physics.world.setBoundsCollision(true, false, false, false);
     this.physics.world.on("worldbounds", this.onWorldBounds);
@@ -164,17 +165,11 @@ class NyanCatGame extends Phaser.Scene {
     this.infoText.setText([
       `FPS: ${this.sys.game.loop.actualFps.toFixed(2)}`,
       `Players: ${aliveNumber}`,
-      `Generation: ${this.generation}`,
-      `Score: ${this.averageScore}`
+      `Generation: ${this.generation}`
     ]);
 
     if (!this.timeEvent.paused) {
-      if (aliveNumber === 0) {
-        if (this.score > this.bestScore) {
-          this.bestScore = this.score;
-          this.bestScoreText.setText(`Best score: ${Math.round(this.bestScore)}`);
-        }
-  
+      if (aliveNumber === 0) {  
         this.timeEvent.paused = true;
         this.sys.game.events.emit("gameover", this.score);
       } else {
