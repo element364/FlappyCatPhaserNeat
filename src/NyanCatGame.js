@@ -10,8 +10,8 @@ class NyanCatGame extends Phaser.Scene {
   }
 
   createColumnNayn() {
-    // const missing = this.generator.integerInRange(1, 5);
-    const missing = this.prev ? 1 : 5
+    const missing = this.generator.integerInRange(1, 5);
+    // const missing = this.prev ? 1 : 5
     this.prev = !this.prev;
 
     for (let i = 0; i < 8; i++) {
@@ -35,7 +35,7 @@ class NyanCatGame extends Phaser.Scene {
     }
   }
 
-  restart(brains, generation, averageScore) {
+  restart({ brains, generation, averageScore, human = false } = {}) {
     this.timeEvent.paused = true;
 
     this.generation = generation;
@@ -52,11 +52,14 @@ class NyanCatGame extends Phaser.Scene {
     this.score = 0;
     this.scoreText.setText(`Score: 0`);
 
-    // for (let brain of brains) {
-    //   this.players.add(new Player(this, 100, 200, "nyan", brain).setScale(0.5));
-    // }
+    for (let brain of brains) {
+      const player = new Player(this, 100, 200, "nyan", brain).setScale(0.5);
+      this.players.add(player);
+    }
 
-    this.players.add(new Player(this, 100, 200, 'nyan', { human: true }).setScale(0.5));
+    if (human) {
+      this.players.add(new Player(this, 100, 200, 'nyan', { human }).setScale(0.5));
+    }
 
     const ppp = this.players.getChildren();
 
@@ -104,7 +107,7 @@ class NyanCatGame extends Phaser.Scene {
     this.camera.setBackgroundColor("#4ac3cd");
 
     this.timeEvent = this.time.addEvent({
-      delay: 800,
+      delay: 1250,
       callback: this.createColumnNayn,
       callbackScope: this,
       loop: true,
@@ -136,7 +139,7 @@ class NyanCatGame extends Phaser.Scene {
       } else {
         const { y, gapD, gapY, gapH, vY } = player.getNearestColumnInfo();
 
-        player.renderDebug(y, gapD, gapY, gapH, vY);
+        // player.renderDebug(y, gapD, gapY, gapH, vY);
 
         if (player.brain.human) {
           if (
@@ -170,11 +173,6 @@ class NyanCatGame extends Phaser.Scene {
         if (this.score > this.bestScore) {
           this.bestScore = this.score;
           this.bestScoreText.setText(`Best score: ${Math.round(this.bestScore)}`);
-        }
-
-        const storedBestScore = Number(localStorage.getItem('bestScore'));
-        if (this.score > storedBestScore) {
-          localStorage.setItem('bestScore', this.score);
         }
   
         this.timeEvent.paused = true;

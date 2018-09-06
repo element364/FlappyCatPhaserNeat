@@ -32,6 +32,31 @@ if (module.hot) {
 }
 
 let mainScene, nn;
+let populationsData = [];
+
+const chartData = {
+  labels: [],
+  datasets: [
+    {
+      name: 'Max',
+      values: []
+    },
+    {
+      name: 'Average',
+      values: []
+    }
+  ]
+};
+
+let chart;
+
+function redrawChart() {
+  chartData.labels = populationsData.map(p => p.generation.toString());
+  chartData.datasets[0].values = populationsData.map(p => p.max);
+  chartData.datasets[1].values = populationsData.map(p => p.avg);
+
+  chart.update(chartData)
+}
 
 const leaderboardVue = new Vue({
   el: '#leaderboard',
@@ -42,6 +67,7 @@ const leaderboardVue = new Vue({
   },
   template: `
     <div id="leaderboard">
+      <button @click="resetBestScore">Reset</button>
       <div
         v-for="(player, index) in players"
         :key="index"
@@ -54,8 +80,12 @@ const leaderboardVue = new Vue({
     </div>
   `,
   methods: {
+    resetBestScore() {
+      localStorage.removeItem('populations');
+      localStorage.removeItem('nn');
+      location.reload();
+    },
     draw(index) {
-      console.log(index);
       const graph = nn.neat.population[index].graph(600, 300);
       drawGraph(graph, '.draw');
     }
@@ -64,29 +94,61 @@ const leaderboardVue = new Vue({
 
 window.leaderboardVue = leaderboardVue;
 
-function renderPopulation(population) {
-  leaderboardVue.players = population.map(item => ({ score: item.score || 0 }));
-}
-
 game.events.on("gameready", () => {
-  mainScene = game.scene.scenes[0];
+  chart = new frappe.Chart('#chart', {
+    title: 'generation score history',
+    type: 'line',
+    height: 200,
+    data: chartData
+  })
+
+  mainScene = game.scene.scenes[0];  
 
   nn = new NN();
   window.nn = nn;
-  const brains = nn.getPopulation();
-  // renderPopulation(nn.getPopulation());
 
-  mainScene.restart(brains, 0, 0);
+  const populationsJson = localStorage.getItem('populations');
+  if (populationsJson) {
+    populationsData = JSON.parse(populationsJson);
+    redrawChart();
+  }
+
+  const nnJson = localStorage.getItem('nn');
+  if (nnJson) {
+    nn.fromJSON(JSON.parse(nnJson));
+    nn.endEvaluation();
+  }
+
+  const brains = nn.getPopulation();
+  
+  leaderboardVue.players = brains.map(item => ({ score: item.score || 0 }));
+  mainScene.restart({ brains, generation: 0, averageScore: 0 });
 });
 
 game.events.on("gameover", bestScore => {
-  // renderPopulation(nn.getPopulation());
+  leaderboardVue.players = nn.getPopulation().map(item => ({ score: item.score || 0 }));
 
-  // const { generation, averageScore } = nn.endEvaluation();
-  
+  const { generation, max, avg, min } = nn.describe();
+
+  populationsData = [
+    ...populationsData,
+    { generation, max, avg, min }
+  ];
+
+  redrawChart();
+
+  if (generation > 0 && generation % 500 === 0) {
+    // Dump and reload
+    localStorage.setItem('populations', JSON.stringify(populationsData));
+    localStorage.setItem('nn', JSON.stringify(nn.toJSON()));
+    location.reload();
+    return;
+  }
+
+  nn.endEvaluation();
   const brains = nn.getPopulation();
   
-  mainScene.restart(brains, generation, averageScore);
+  mainScene.restart({ brains, generation: generation, averageScore: avg });
 });
 
 window.game = game;
