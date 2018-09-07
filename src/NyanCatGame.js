@@ -138,9 +138,9 @@ class NyanCatGame extends Phaser.Scene {
       if (player.y < 0 || player.y > 300) {
         this.killPlayer(player);
       } else {
-        const { y, gapD, gapY, gapH, vY } = player.getNearestColumnInfo();
+        const state = player.getState();
 
-        // player.renderDebug(y, gapD, gapY, gapH, vY);
+        // player.renderDebug(state);
 
         if (player.brain.human) {
           if (
@@ -151,7 +151,7 @@ class NyanCatGame extends Phaser.Scene {
             player.fly();
           }
         } else {
-          const action = player.getAction({ y, gapD, gapY, gapH, vY });
+          const action = player.getAction(state);
 
           if (action) {
             player.fly();

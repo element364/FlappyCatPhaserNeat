@@ -14,19 +14,17 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     this.debugGraphics = scene.add.graphics({
       lineStyle: { width: 2, color: 0x0000aa }
     });
-
-    this.debugText = scene.add.text(x - 75, y - 25, "", {
-      font: "14x Courier",
-      fill: "#ff0000"
-    });
   }
 
-  getAction({ y, gapD, gapY, gapH, vY }) {
+  getAction({y, fGapX, fGapTopY, fGapBotY, bGapX, bGapTopY, bGapBotY, vY}) {
     const input = [
       y / 300,
-      gapD / 600,
-      gapY / 300,
-      gapH / 300,
+      fGapX / 600,
+      fGapTopY / 300,
+      fGapBotY / 300,
+      bGapX / 600,
+      bGapTopY / 300,
+      bGapBotY / 300,
       (vY + 250) / 1000
     ];
 
@@ -39,74 +37,101 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVelocityY(-250);
   }
 
-  getNearestColumnInfo() {
-    let gapD = 600;
-    let rows = [];
-
-    for (let pipe of this.scene.pipes.getChildren()) {
-      const distance = pipe.x - this.x;
-      if (distance >= 0) {
-        if (distance === gapD) {
-          rows.push(pipe);
-        }
-
-        if (distance < gapD) {
-          gapD = distance;
-          rows = [pipe];
-        }
-      }
-    }
-
+  extractGap(row, forward) {
     let gapH = 0;
-    let gapY = 0;
+    let x = forward ? 600 : 0, topY = 300, botY = 300;
 
-    if (rows.length > 0) {
-      for (let i = 1; i < rows.length; i++) {
-        const h = rows[i].y - rows[i - 1].y + rows[i - 1].height;
+    if (row.length > 0) {
+      for (let i = 1; i < row.length; i++) {
+        const h = row[i].y - row[i - 1].y + row[i - 1].height;
 
         if (h > gapH) {
           gapH = h;
-          gapY = rows[i - 1].y;
+          x = row[i].x;
+          topY = row[i - 1].y;
+          botY = row[i].y;
         }
       }
     }
 
     return {
+      x, topY, botY
+    };
+  }
+
+  getState() {
+    let gapFD = 600;
+    let gapBD = 600;
+
+    let rowsF = [], rowsB = [];
+
+    for (let pipe of this.scene.pipes.getChildren()) {
+      const distance = pipe.x - this.x;
+
+      if (distance > 0) {
+        // forward
+        if (distance === gapFD) {
+          rowsF.push(pipe);
+        }
+
+        if (distance < gapFD) {
+          gapFD = distance;
+          rowsF = [pipe];
+        }
+      } else {
+        // back
+        if (distance === gapBD) {
+          rowsB.push(pipe);
+        }
+
+        if (distance < gapBD) {
+          gapBD = distance;
+          rowsB = [pipe];
+        }
+      }
+    }
+
+    const fGap = this.extractGap(rowsF, true);
+    const bGap = this.extractGap(rowsB, false);
+
+    return {
       y: this.y,
-      gapD,
-      gapY,
-      gapH,
+      fGapX: fGap.x,
+      fGapTopY: fGap.topY,
+      fGapBotY: fGap.botY,
+      bGapX: bGap.x,
+      bGapTopY: bGap.topY,
+      bGapBotY: bGap.botY,
       vY: this.body.velocity.y
     };
   }
 
-  renderDebug(y, gapD, gapY, gapH, vY) {
-    this.debugText.setPosition(this.x - 75, this.y - 25);
-    this.debugText.setText([
-      `y: ${y.toFixed(2)}`,
-      `gD: ${gapD.toFixed(2)}`,
-      `gY: ${gapY.toFixed(2)}`,
-      `gH: ${gapH.toFixed(2)}`,
-      `vY: ${vY.toFixed(2)}`
-    ]);
-
+  renderDebug({y, fGapX, fGapTopY, fGapBotY, bGapX, bGapTopY, bGapBotY, vY}) {
     this.debugGraphics.clear();
-    this.debugGraphics.strokeRectShape(
-      new Phaser.Geom.Rectangle(
-        this.x - this.displayWidth / 2,
-        y - this.displayHeight / 2,
-        this.displayWidth,
-        this.displayHeight
-      )
-    );
-    this.debugGraphics.strokeRectShape(
-      new Phaser.Geom.Rectangle(this.x + gapD - 10, gapY + 17, 20, 75)
-    );
+    
+    this.debugGraphics.strokeCircle(this.x, y, 20);
+    
+    this.debugGraphics.strokeCircle(fGapX, fGapTopY, 20);
+    this.debugGraphics.strokeCircle(fGapX, fGapBotY, 20);
+    this.debugGraphics.strokeCircle(bGapX, bGapTopY, 20);
+    this.debugGraphics.strokeCircle(bGapX, bGapBotY, 20);
+
+    this.debugGraphics.lineStyle(3, 0x2ECC40);
+    this.debugGraphics.beginPath()
+    this.debugGraphics.moveTo(this.x, y);
+    this.debugGraphics.lineTo(fGapX, fGapTopY);
+    this.debugGraphics.moveTo(this.x, y);
+    this.debugGraphics.lineTo(fGapX, fGapBotY);
+    this.debugGraphics.moveTo(this.x, y);
+    this.debugGraphics.lineTo(bGapX, bGapTopY);
+    this.debugGraphics.moveTo(this.x, y);
+    this.debugGraphics.lineTo(bGapX, bGapBotY);
+    this.debugGraphics.closePath();
+    this.debugGraphics.strokePath();
   }
 
   kill(score) {
     this.brain.score = score;
-    this.debugText.destroy();
     this.debugGraphics.destroy();
     this.destroy();
   }

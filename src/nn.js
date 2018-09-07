@@ -2,7 +2,7 @@ import { Network, Neat, architect, methods } from "neataptic";
 
 class NN {
   constructor(json = null, {
-    inputSize = 5,
+    inputSize = 8,
     outputSize = 1,
     popsize = 50,
     mutationRate = 0.3,
@@ -19,7 +19,7 @@ class NN {
       popsize,
       mutationRate,
       elitism: Math.round(elitismPercent * popsize),
-      network: new architect.Perceptron(inputSize, inputSize + 2, outputSize)
+      network: new architect.Perceptron(inputSize, inputSize , outputSize)
       // network: new architect.Random(inputSize, startHiddenSize, outputSize)
     });
 

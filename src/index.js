@@ -5,6 +5,8 @@ import NyanCatGame from "./NyanCatGame";
 import NN from "./nn";
 import { drawGraph } from './graph/graph';
 
+const human = false;
+
 const config = {
   parent: "game",
   type: Phaser.AUTO,
@@ -53,6 +55,9 @@ const chart = new frappe.Chart('#chart', {
   title: 'generation score history',
   type: 'line',
   height: 300,
+  lineOptions: {
+    hideDots: 1
+  },
   data: chartData
 });
 
@@ -87,9 +92,7 @@ const leaderboardVue = new Vue({
   `,
   methods: {
     resetBestScore() {
-      localStorage.removeItem('maxScore');
-      localStorage.removeItem('populations');
-      localStorage.removeItem('nn');
+      localStorage.clear();
       location.reload();
     },
     draw(index) {
@@ -122,7 +125,7 @@ game.events.on("gameready", () => {
 
   const brains = nn.getPopulation();
   
-  mainScene.restart({ brains, generation: nn.neat.generation, maxScore });
+  mainScene.restart({ brains, generation: nn.neat.generation, maxScore, human });
 });
 
 game.events.on("gameover", bestScore => {
@@ -137,7 +140,7 @@ game.events.on("gameover", bestScore => {
 
   redrawChart();
 
-  if (generation > 0 && generation % 10 === 0) {
+  if (generation > 0 && generation % 500 === 0) {
     // Dump and reload
     localStorage.setItem('maxScore', maxScore);
     localStorage.setItem('populations', JSON.stringify(populationsData));
@@ -149,7 +152,7 @@ game.events.on("gameover", bestScore => {
   nn.endEvaluation();
   const brains = nn.getPopulation();
   
-  mainScene.restart({ brains, generation, maxScore });
+  mainScene.restart({ brains, generation, maxScore, human });
 });
 
 window.game = game;
